@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Feet to Ft-In Calculator</title>
+  <style>
+    :root { --bg: #f5f6f8; --card: #fff; --text: #1d2330; --muted: #6b7280; --border: #d1d5db; --accent: #2563eb; --error: #dc2626; }
+    @media (prefers-color-scheme: dark) {
+      :root { --bg: #111318; --card: #1b1e25; --text: #e5e7eb; --muted: #9ca3af; --border: #374151; --accent: #60a5fa; --error: #f87171; }
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 24px 16px; background: var(--bg); color: var(--text); font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
+    main { max-width: 440px; margin: 0 auto; background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; }
+    h1 { font-size: 1.3rem; margin: 0 0 20px; }
+    label { display: block; font-size: .85rem; color: var(--muted); margin: 16px 0 6px; }
+    input, select, button { font: inherit; color: inherit; }
+    input, select { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: transparent; font-size: 1.25rem; }
+    select { font-size: 1rem; }
+    input:focus, select:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+    input.invalid { border-color: var(--error); outline-color: var(--error); }
+    .row { display: flex; gap: 8px; }
+    .row input { flex: 1; min-width: 0; }
+    .row button { flex: 0 0 48px; border: 1px solid var(--border); border-radius: 8px; background: transparent; font-size: 1.25rem; cursor: pointer; }
+    .row button:hover { border-color: var(--accent); color: var(--accent); }
+    .hint { font-size: .8rem; color: var(--muted); margin-top: 6px; min-height: 1em; }
+    .hint.error { color: var(--error); }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Feet &rarr; Feet-Inches</h1>
+
+    <label for="decimal">Decimal feet</label>
+    <input id="decimal" type="text" inputmode="decimal" placeholder="e.g. 5.3" autocomplete="off">
+
+    <label for="precision">Round inches to nearest</label>
+    <select id="precision">
+      <option value="2">1/2"</option>
+      <option value="4">1/4"</option>
+      <option value="8">1/8"</option>
+      <option value="16" selected>1/16"</option>
+      <option value="32">1/32"</option>
+      <option value="64">1/64"</option>
+    </select>
+
+    <label for="ftin">Feet-inches (editable)</label>
+    <div class="row">
+      <button id="minus" type="button" aria-label="Decrease by one increment">&minus;</button>
+      <input id="ftin" type="text" placeholder="e.g. 5' 3-5/8&quot;" autocomplete="off">
+      <button id="plus" type="button" aria-label="Increase by one increment">+</button>
+    </div>
+    <div id="hint" class="hint">Accepts 5' 3-5/8", 5 ft 3 5/8 in, 5'3.625", or 5 3 5/8</div>
+  </main>
+
+  <script src="converter.js"></script>
+  <script>
+    const decimalEl = document.getElementById('decimal');
+    const precisionEl = document.getElementById('precision');
+    const ftinEl = document.getElementById('ftin');
+    const hintEl = document.getElementById('hint');
+    const defaultHint = hintEl.textContent;
+    let value = null; // current value in decimal feet
+
+    const precision = () => Number(precisionEl.value);
+    const formatDecimal = v => String(Number(v.toFixed(6)));
+
+    function showFtIn() {
+      ftinEl.value = value === null ? '' : Converter.formatFtIn(Converter.decimalToFtIn(value, precision()));
+      setValid(true);
+    }
+
+    function setValid(ok) {
+      ftinEl.classList.toggle('invalid', !ok);
+      hintEl.classList.toggle('error', !ok);
+      hintEl.textContent = ok ? defaultHint : 'Could not read that feet-inches value.';
+    }
+
+    decimalEl.addEventListener('input', () => {
+      const s = decimalEl.value.trim();
+      const v = Number(s);
+      const ok = s === '' || !isNaN(v);
+      decimalEl.classList.toggle('invalid', !ok);
+      if (!ok) return;
+      value = s === '' ? null : v;
+      showFtIn();
+    });
+
+    ftinEl.addEventListener('input', () => {
+      if (ftinEl.value.trim() === '') { value = null; decimalEl.value = ''; setValid(true); return; }
+      const v = Converter.parseFtIn(ftinEl.value);
+      setValid(!isNaN(v));
+      if (isNaN(v)) return;
+      value = v;
+      decimalEl.value = formatDecimal(v);
+      decimalEl.classList.remove('invalid');
+    });
+
+    // Tidy the edited text into standard form once editing is done.
+    ftinEl.addEventListener('blur', () => { if (!ftinEl.classList.contains('invalid')) showFtIn(); });
+    ftinEl.addEventListener('keydown', e => { if (e.key === 'Enter') ftinEl.blur(); });
+
+    precisionEl.addEventListener('change', showFtIn);
+
+    function nudge(dir) {
+      const step = 1 / (12 * precision());
+      const snapped = Math.round((value || 0) / step) * step; // align to the grid first
+      value = snapped + dir * step;
+      if (Math.abs(value) < step / 2) value = 0;
+      decimalEl.value = formatDecimal(value);
+      decimalEl.classList.remove('invalid');
+      showFtIn();
+    }
+    document.getElementById('minus').addEventListener('click', () => nudge(-1));
+    document.getElementById('plus').addEventListener('click', () => nudge(1));
+  </script>
+</body>
+</html>
