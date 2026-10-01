@@ -3,37 +3,77 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Feet to Ft-In Calculator</title>
-  <style>
-    :root { --bg: #f5f6f8; --card: #fff; --text: #1d2330; --muted: #6b7280; --border: #d1d5db; --accent: #2563eb; --error: #dc2626; }
-    @media (prefers-color-scheme: dark) {
-      :root { --bg: #111318; --card: #1b1e25; --text: #e5e7eb; --muted: #9ca3af; --border: #374151; --accent: #60a5fa; --error: #f87171; }
-    }
-    * { box-sizing: border-box; }
-    body { margin: 0; padding: 24px 16px; background: var(--bg); color: var(--text); font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
-    main { max-width: 440px; margin: 0 auto; background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; }
-    h1 { font-size: 1.3rem; margin: 0 0 20px; }
-    label { display: block; font-size: .85rem; color: var(--muted); margin: 16px 0 6px; }
-    input, select, button { font: inherit; color: inherit; }
-    input, select { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: transparent; font-size: 1.25rem; }
-    select { font-size: 1rem; }
-    input:focus, select:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
-    input.invalid { border-color: var(--error); outline-color: var(--error); }
-    .row { display: flex; gap: 8px; }
-    .row input { flex: 1; min-width: 0; }
-    .row button { flex: 0 0 48px; border: 1px solid var(--border); border-radius: 8px; background: transparent; font-size: 1.25rem; cursor: pointer; }
-    .row button:hover { border-color: var(--accent); color: var(--accent); }
-    .hint { font-size: .8rem; color: var(--muted); margin-top: 6px; min-height: 1em; }
-    .hint.error { color: var(--error); }
-  </style>
+<title>Feet to Ft-In</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  /* Layout: one narrow work card, like a tape blade — decimal in, ft-in out, inch ruler below. */
+  :root {
+    --bg: #eef0ec; --card: #fbfcfa; --fg: #1c211d; --muted: #646d66; --line: #cfd5cf;
+    --accent: #e3b505; --accent-ink: #1c211d; --focus: #2c6e49; --error: #c0392b;
+    --display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+    --bg: #141714; --card: #1d211e; --fg: #e8ece8; --muted: #9aa49c; --line: #343b35;
+    --accent: #f0c419; --accent-ink: #141714; --focus: #6fcf97; --error: #ef6f61; color-scheme: dark; } }
+  :root[data-theme="dark"] {
+    --bg: #141714; --card: #1d211e; --fg: #e8ece8; --muted: #9aa49c; --line: #343b35;
+    --accent: #f0c419; --accent-ink: #141714; --focus: #6fcf97; --error: #ef6f61; color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body { background: var(--bg); color: var(--fg); font-family: var(--display); padding: 28px 16px; }
+  main { max-width: 460px; margin: 0 auto; background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 22px 20px 24px; display: grid; gap: 18px; }
+  header { display: grid; gap: 4px; }
+  h1 { margin: 0; font-size: 1.45rem; font-weight: 800; letter-spacing: -.01em; text-wrap: balance; }
+  .sub { margin: 0; color: var(--muted); font-size: .9rem; }
+  .field { display: grid; gap: 6px; }
+  label { font-size: .72rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  input, select, button { font: inherit; color: inherit; }
+  input, select { width: 100%; min-width: 0; padding: 12px 14px; border: 1.5px solid var(--line); border-radius: 10px; background: var(--bg); font-family: var(--mono); font-size: 1.35rem; font-variant-numeric: tabular-nums; }
+  select { font-size: 1rem; }
+  input:focus-visible, select:focus-visible, button:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  input.invalid { border-color: var(--error); }
+  .result input { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; font-size: 1.6rem; text-align: center; }
+  .row { display: flex; gap: 8px; }
+  .row input { flex: 1; }
+  .row button { flex: 0 0 52px; border: 1.5px solid var(--line); border-radius: 10px; background: var(--card); font-family: var(--mono); font-size: 1.4rem; cursor: pointer; }
+  .row button:hover { border-color: var(--fg); }
+  .row button:active { transform: translateY(1px); }
+  .hint { font-size: .8rem; color: var(--muted); font-family: var(--mono); min-height: 1.2em; }
+  .hint.error { color: var(--error); }
+  .ruler { display: grid; gap: 6px; }
+  .ruler svg { width: 100%; height: auto; display: block; }
+  .ruler .meta { display: flex; justify-content: space-between; font-family: var(--mono); font-size: .78rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .calc { display: grid; gap: 10px; padding-top: 18px; border-top: 1px dashed var(--line); }
+  .ops { display: flex; gap: 8px; }
+  .ops .seg { display: flex; border: 1.5px solid var(--line); border-radius: 10px; overflow: hidden; flex: 0 0 auto; }
+  .ops .seg button { width: 48px; border: 0; background: var(--card); font-family: var(--mono); font-size: 1.3rem; cursor: pointer; }
+  .ops .seg button[aria-pressed="true"] { background: var(--fg); color: var(--card); }
+  .ops input { flex: 1; }
+  .answer { display: grid; gap: 2px; padding: 12px 14px; border: 1.5px solid var(--fg); border-radius: 10px; }
+  .answer .big { font-family: var(--mono); font-size: 1.6rem; font-weight: 600; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+  .answer .small { font-family: var(--mono); font-size: .85rem; color: var(--muted); }
+  .answer.error .big { color: var(--error); font-size: 1rem; }
+  .use { justify-self: start; padding: 9px 14px; border: 1.5px solid var(--line); border-radius: 10px; background: var(--card); font-weight: 700; cursor: pointer; }
+  .use:hover { border-color: var(--fg); }
+  .use:disabled { opacity: .5; cursor: default; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
 </head>
 <body>
-  <main>
-    <h1>Feet &rarr; Feet-Inches</h1>
+<main>
+  <header>
+    <h1>Feet to Feet-Inches</h1>
+    <p class="sub">Type decimal feet, or edit the feet-inches value directly.</p>
+  </header>
 
+  <div class="field">
     <label for="decimal">Decimal feet</label>
-    <input id="decimal" type="text" inputmode="decimal" placeholder="e.g. 5.3" autocomplete="off">
+    <input id="decimal" type="text" inputmode="decimal" value="5.3" autocomplete="off">
+  </div>
 
+  <div class="field">
     <label for="precision">Round inches to nearest</label>
     <select id="precision">
       <option value="2">1/2"</option>
@@ -43,76 +83,174 @@
       <option value="32">1/32"</option>
       <option value="64">1/64"</option>
     </select>
+  </div>
 
-    <label for="ftin">Feet-inches (editable)</label>
+  <div class="field result">
+    <label for="ftin">Feet-inches (tap to edit)</label>
     <div class="row">
       <button id="minus" type="button" aria-label="Decrease by one increment">&minus;</button>
-      <input id="ftin" type="text" placeholder="e.g. 5' 3-5/8&quot;" autocomplete="off">
+      <input id="ftin" type="text" autocomplete="off" spellcheck="false">
       <button id="plus" type="button" aria-label="Increase by one increment">+</button>
     </div>
-    <div id="hint" class="hint">Accepts 5' 3-5/8", 5 ft 3 5/8 in, 5'3.625", or 5 3 5/8</div>
-  </main>
+    <div id="hint" class="hint">Try 5' 3-1/2", 5 ft 3 1/2 in, or 5 3 1/2</div>
+  </div>
 
-  <script src="converter.js"></script>
-  <script>
-    const decimalEl = document.getElementById('decimal');
-    const precisionEl = document.getElementById('precision');
-    const ftinEl = document.getElementById('ftin');
-    const hintEl = document.getElementById('hint');
-    const defaultHint = hintEl.textContent;
-    let value = null; // current value in decimal feet
+  <div class="ruler" aria-hidden="true">
+    <svg id="ruler" viewBox="0 0 400 56"></svg>
+    <div class="meta"><span id="rulerFoot">Within foot</span><span id="rulerInches"></span></div>
+  </div>
+  <section class="calc" aria-labelledby="calcLabel">
+    <label id="calcLabel" for="operand">Multiply or divide the total</label>
+    <div class="ops">
+      <div class="seg" role="group" aria-label="Operation">
+        <button id="opMul" type="button" aria-pressed="true" aria-label="Multiply">&times;</button>
+        <button id="opDiv" type="button" aria-pressed="false" aria-label="Divide">&divide;</button>
+      </div>
+      <input id="operand" type="text" inputmode="decimal" value="3" autocomplete="off" aria-label="Number">
+    </div>
+    <div id="answer" class="answer" aria-live="polite">
+      <span id="answerFtIn" class="big"></span>
+      <span id="answerDec" class="small"></span>
+    </div>
+    <button id="useAnswer" class="use" type="button">Use as new total</button>
+  </section>
+</main>
 
-    const precision = () => Number(precisionEl.value);
-    const formatDecimal = v => String(Number(v.toFixed(6)));
+<script src="converter.js"></script>
+<script>
+  const decimalEl = document.getElementById('decimal');
+  const precisionEl = document.getElementById('precision');
+  const ftinEl = document.getElementById('ftin');
+  const hintEl = document.getElementById('hint');
+  const rulerEl = document.getElementById('ruler');
+  const defaultHint = hintEl.textContent;
+  let value = 5.3;
 
-    function showFtIn() {
-      ftinEl.value = value === null ? '' : Converter.formatFtIn(Converter.decimalToFtIn(value, precision()));
-      setValid(true);
+  const precision = () => Number(precisionEl.value);
+  const formatDecimal = v => String(Number(v.toFixed(6)));
+
+  function drawRuler() {
+    const r = value === null ? null : Converter.decimalToFtIn(value, precision());
+    const x0 = 12, w = 376, per = w / 12;
+    let s = '<rect x="0" y="0" width="400" height="56" rx="6" fill="var(--bg)" stroke="var(--line)"/>';
+    for (let i = 0; i <= 12 * 4; i++) {
+      const x = x0 + i * per / 4;
+      const h = i % 4 === 0 ? 18 : i % 2 === 0 ? 11 : 7;
+      s += `<line x1="${x}" y1="0" x2="${x}" y2="${h}" stroke="var(--muted)" stroke-width="${i % 4 === 0 ? 1.4 : 1}"/>`;
+      if (i % 4 === 0 && i > 0 && i < 48) s += `<text x="${x}" y="32" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="var(--muted)">${i / 4}</text>`;
     }
-
-    function setValid(ok) {
-      ftinEl.classList.toggle('invalid', !ok);
-      hintEl.classList.toggle('error', !ok);
-      hintEl.textContent = ok ? defaultHint : 'Could not read that feet-inches value.';
+    if (r) {
+      const inches = r.inches + r.num / r.den;
+      const x = x0 + inches * per;
+      s += `<rect x="${x0}" y="40" width="${Math.max(inches * per, 0)}" height="8" rx="2" fill="var(--accent)"/>`;
+      s += `<line x1="${x}" y1="0" x2="${x}" y2="52" stroke="var(--fg)" stroke-width="2"/>`;
+      document.getElementById('rulerFoot').textContent = `${r.sign < 0 ? '-' : ''}${r.feet} ft +`;
+      document.getElementById('rulerInches').textContent = `${formatDecimal(inches)} in`;
+    } else {
+      document.getElementById('rulerFoot').textContent = 'Within foot';
+      document.getElementById('rulerInches').textContent = '';
     }
+    rulerEl.innerHTML = s;
+    if (typeof updateAnswer === 'function') updateAnswer();
+  }
 
-    decimalEl.addEventListener('input', () => {
-      const s = decimalEl.value.trim();
-      const v = Number(s);
-      const ok = s === '' || !isNaN(v);
-      decimalEl.classList.toggle('invalid', !ok);
-      if (!ok) return;
-      value = s === '' ? null : v;
-      showFtIn();
-    });
+  function showFtIn() {
+    ftinEl.value = value === null ? '' : Converter.formatFtIn(Converter.decimalToFtIn(value, precision()));
+    setValid(true);
+    drawRuler();
+  }
 
-    ftinEl.addEventListener('input', () => {
-      if (ftinEl.value.trim() === '') { value = null; decimalEl.value = ''; setValid(true); return; }
-      const v = Converter.parseFtIn(ftinEl.value);
-      setValid(!isNaN(v));
-      if (isNaN(v)) return;
-      value = v;
-      decimalEl.value = formatDecimal(v);
-      decimalEl.classList.remove('invalid');
-    });
+  function setValid(ok) {
+    ftinEl.classList.toggle('invalid', !ok);
+    hintEl.classList.toggle('error', !ok);
+    hintEl.textContent = ok ? defaultHint : "Can't read that. Use a format like 5' 3-1/2\".";
+  }
 
-    // Tidy the edited text into standard form once editing is done.
-    ftinEl.addEventListener('blur', () => { if (!ftinEl.classList.contains('invalid')) showFtIn(); });
-    ftinEl.addEventListener('keydown', e => { if (e.key === 'Enter') ftinEl.blur(); });
+  decimalEl.addEventListener('input', () => {
+    const s = decimalEl.value.trim();
+    const v = Number(s);
+    const ok = s === '' || !isNaN(v);
+    decimalEl.classList.toggle('invalid', !ok);
+    if (!ok) return;
+    value = s === '' ? null : v;
+    showFtIn();
+  });
 
-    precisionEl.addEventListener('change', showFtIn);
+  ftinEl.addEventListener('input', () => {
+    if (ftinEl.value.trim() === '') { value = null; decimalEl.value = ''; setValid(true); drawRuler(); return; }
+    const v = Converter.parseFtIn(ftinEl.value);
+    setValid(!isNaN(v));
+    if (isNaN(v)) return;
+    value = v;
+    decimalEl.value = formatDecimal(v);
+    decimalEl.classList.remove('invalid');
+    drawRuler();
+  });
 
-    function nudge(dir) {
-      const step = 1 / (12 * precision());
-      const snapped = Math.round((value || 0) / step) * step; // align to the grid first
-      value = snapped + dir * step;
-      if (Math.abs(value) < step / 2) value = 0;
-      decimalEl.value = formatDecimal(value);
-      decimalEl.classList.remove('invalid');
-      showFtIn();
-    }
-    document.getElementById('minus').addEventListener('click', () => nudge(-1));
-    document.getElementById('plus').addEventListener('click', () => nudge(1));
-  </script>
+  ftinEl.addEventListener('blur', () => { if (!ftinEl.classList.contains('invalid')) showFtIn(); });
+  ftinEl.addEventListener('keydown', e => { if (e.key === 'Enter') ftinEl.blur(); });
+  precisionEl.addEventListener('change', showFtIn);
+
+  function nudge(dir) {
+    const step = 1 / (12 * precision());
+    value = Math.round((value || 0) / step) * step + dir * step;
+    if (Math.abs(value) < step / 2) value = 0;
+    decimalEl.value = formatDecimal(value);
+    decimalEl.classList.remove('invalid');
+    showFtIn();
+  }
+  document.getElementById('minus').addEventListener('click', () => nudge(-1));
+  document.getElementById('plus').addEventListener('click', () => nudge(1));
+
+  // Multiply / divide the current total by a plain number (decimal or fraction like 3/4).
+  const operandEl = document.getElementById('operand');
+  const answerEl = document.getElementById('answer');
+  const useEl = document.getElementById('useAnswer');
+  const opMul = document.getElementById('opMul');
+  const opDiv = document.getElementById('opDiv');
+  let op = 'mul';
+  let answer = null;
+
+  function parseOperand(text) {
+    const t = text.trim();
+    if (t === '') return NaN;
+    const neg = t[0] === '-';
+    const v = Converter.parseFraction(neg ? t.slice(1) : t);
+    return neg ? -v : v;
+  }
+
+  function updateAnswer() {
+    const n = parseOperand(operandEl.value);
+    let msg = null;
+    if (value === null) msg = 'Enter a total above.';
+    else if (isNaN(n)) msg = 'Enter a number, like 3, 2.5 or 3/4.';
+    else if (op === 'div' && n === 0) msg = "Can't divide by zero.";
+    answer = msg ? null : (op === 'mul' ? value * n : value / n);
+    answerEl.classList.toggle('error', !!msg);
+    operandEl.classList.toggle('invalid', !isNaN(n) || operandEl.value.trim() === '' ? false : true);
+    document.getElementById('answerFtIn').textContent = msg || Converter.formatFtIn(Converter.decimalToFtIn(answer, precision()));
+    document.getElementById('answerDec').textContent = msg ? '' : formatDecimal(answer) + ' ft';
+    useEl.disabled = answer === null;
+  }
+
+  function setOp(next) {
+    op = next;
+    opMul.setAttribute('aria-pressed', String(op === 'mul'));
+    opDiv.setAttribute('aria-pressed', String(op === 'div'));
+    updateAnswer();
+  }
+  opMul.addEventListener('click', () => setOp('mul'));
+  opDiv.addEventListener('click', () => setOp('div'));
+  operandEl.addEventListener('input', updateAnswer);
+  useEl.addEventListener('click', () => {
+    if (answer === null) return;
+    value = answer;
+    decimalEl.value = formatDecimal(value);
+    decimalEl.classList.remove('invalid');
+    showFtIn();
+  });
+
+  showFtIn();
+</script>
 </body>
 </html>
